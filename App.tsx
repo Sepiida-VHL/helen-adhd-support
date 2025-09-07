@@ -463,7 +463,7 @@ const App: React.FC = () => {
                 </div>
             </header>
 
-            <main className="flex-1 overflow-y-auto p-4 space-y-2">
+            <main className="flex-1 overflow-y-auto p-4 space-y-4">
                 {messages.map(renderMessage)}
                 {isLoading && (
                     <div className="flex items-end gap-2 justify-start">

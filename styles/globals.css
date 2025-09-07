@@ -1,10 +1,5 @@
 /* Helen App Global Styles - Gentle & Soothing */
 
-/* Tailwind CSS Layers */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* CSS Reset with calm defaults */
 *, *::before, *::after {
   box-sizing: border-box;
