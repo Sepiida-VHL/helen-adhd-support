@@ -420,6 +420,7 @@ const App: React.FC = () => {
                             Profile
                         </button>
                     )}
+                    {/* Clerk auth temporarily disabled
                     <SignedOut>
                         <SignInButton mode="modal">
                             <button className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-medium py-2 px-4 rounded-full transition-all duration-300 shadow-lg transform hover:scale-105">
@@ -433,6 +434,7 @@ const App: React.FC = () => {
                     <SignedIn>
                         <UserButton afterSignOutUrl="/"/>
                     </SignedIn>
+                    */}
                     <button 
                         onClick={() => setShowMeditativeSpace(true)}
                         className="secondary rounded-full"
