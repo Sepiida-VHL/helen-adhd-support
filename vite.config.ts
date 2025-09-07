@@ -20,6 +20,12 @@ export default defineConfig(({ mode }) => {
       preview: {
         host: true,
         port: parseInt(process.env.PORT || '4173'),
+        allowedHosts: [
+          'localhost',
+          'healthcheck.railway.app',
+          '.railway.app',
+          '.up.railway.app'
+        ]
       }
     };
 });
