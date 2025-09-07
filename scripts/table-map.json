@@ -1,0 +1,23 @@
+[
+  {
+    "collection": "users",
+    "supabase_table": "users",
+    "on_conflict": ["id"],
+    "id_field": "id",
+    "field_map": {
+      "displayName": "display_name",
+      "createdAt": "created_at"
+    }
+  },
+  {
+    "collection": "sessions",
+    "supabase_table": "sessions",
+    "on_conflict": ["id"],
+    "id_field": "id",
+    "field_map": {
+      "userId": "user_id",
+      "startedAt": "started_at",
+      "endedAt": "ended_at"
+    }
+  }
+]

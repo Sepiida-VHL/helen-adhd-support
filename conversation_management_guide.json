@@ -1,0 +1,94 @@
+{
+  "open_questions": [
+    "What's feeling most urgent or important right now?",
+    "Would it help to look at one thing at a time?",
+    "Can you tell me what's been getting in the way?",
+    "What usually helps when you feel like this?",
+    "Is there something you were hoping to get done today?",
+    "Where would you like to start, even if it's a small step?",
+    "What's been working, even a little?",
+    "What do you want to feel more of right now?"
+  ],
+  "affirmations": [
+    "It makes sense that this feels like a lot.",
+    "You're noticing what's going on—that's a strong place to begin.",
+    "You're showing up for yourself just by naming this.",
+    "It's okay to take your time here.",
+    "You've been doing your best to navigate this.",
+    "You're thinking carefully about what matters to you.",
+    "You're already reflecting on what you need—that's important.",
+    "There's something valuable in just pausing and noticing."
+  ],
+  "reflections": {
+    "simple_reflection_starters": [
+      "It sounds like you're feeling…",
+      "You're finding that…",
+      "You've been thinking about…",
+      "You're noticing…",
+      "You're wondering if…"
+    ],
+    "complex_reflection_types": {
+      "rephrasing": [
+        "You're aware of what you want to do, but starting feels hard.",
+        "You're trying to figure out how to move forward without overwhelming yourself."
+      ],
+      "paraphrasing": [
+        "You know the task is there, but your energy just isn't meeting it right now.",
+        "You're trying to balance what you need with what's expected of you."
+      ],
+      "reflection_of_feeling": [
+        "It sounds like you're feeling a mix of pressure and hesitation.",
+        "There's some frustration here, but also a hope that things could feel easier."
+      ]
+    }
+  },
+  "summaries": {
+    "starters": [
+      "Let me check I'm understanding…",
+      "Here's what I'm hearing—let me know if I've missed something.",
+      "To make sure I'm following you right…"
+    ],
+    "structure": {
+      "change_talk_indicators": {
+        "problem_recognition": "You've noticed that something is getting in your way.",
+        "concern": "You're starting to see how this might affect your day or mood.",
+        "intent_to_change": "You're thinking about trying something different, even if it's small.",
+        "optimism": "You're open to the idea that this could shift in a better direction."
+      },
+      "ambivalence_template": "On the one hand, ${positive_aspect}, and on the other, ${challenge_or_barrier}.",
+      "invitation_endings": [
+        "Does that feel accurate to where you're at?",
+        "Would you like to adjust or add anything?",
+        "Should we look at the next step together?"
+      ]
+    }
+  },
+  "deescalation_tools": {
+    "grounding_prompts": [
+      "Can you name five things you can see around you right now?",
+      "Would it help to take three deep breaths together before we go on?",
+      "What's one physical thing you could do right now—stretch, sip water, stand up?",
+      "Want to pause here for a moment and check in with your body?"
+    ],
+    "choice_scaffolds": [
+      "Here are two small options—see if one feels okay: ${option1}, ${option2}",
+      "We can slow this down. Would you prefer: ${option1}, ${option2}, or wait?",
+      "Just pick whichever feels less heavy right now.",
+      "No pressure—just possibilities. Want to look at a few together?"
+    ]
+  },
+  "task_initiation_helpers": {
+    "tiny_steps": [
+      "Want to just open the app or tab where the task lives?",
+      "Maybe start with setting a 2-minute timer?",
+      "What if you just write one word or take one note?",
+      "You could try one small action, then stop—just to get moving."
+    ],
+    "externalization_prompts": [
+      "Want to talk it out first before trying to do it?",
+      "Would writing it down help make it less tangled?",
+      "Should we name the task out loud together?",
+      "Want to imagine you're helping a friend with this instead of yourself?"
+    ]
+  }
+}
