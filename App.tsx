@@ -300,7 +300,7 @@ const App: React.FC = () => {
     if (showOnboarding) {
         return (
             <AppShell orbConfig={{ hue: 270, hoverIntensity: 0.2, opacity: 0.25 }}>
-                <UserOnboarding onComplete={handleProfileComplete} isFirstTime={true} />
+                <UserOnboarding onComplete={handleProfileComplete} isFirstTime={!userProfile} />
             </AppShell>
         );
     }
@@ -343,14 +343,22 @@ const App: React.FC = () => {
         );
     }
 
-    return (
-        <AppShell>
-            {showMeditativeSpace && (
+    // Show meditative space modal
+    if (showMeditativeSpace) {
+        return (
+            <AppShell orbConfig={{ hue: 240, hoverIntensity: 0.1, opacity: 0.15 }}>
                 <MeditativeSpace 
                     isVisible={showMeditativeSpace}
                     onClose={handleBackToEntryPoints}
                 />
-            )}
+            </AppShell>
+        );
+    }
+
+    // Show chat interface
+    if (appMode === 'chat') {
+        return (
+        <AppShell>
             {showMemoryCreation && userProfile && (
                 <div className="modal-overlay" onClick={() => setShowMemoryCreation(false)}>
                     <div className="modal-content" onClick={e => e.stopPropagation()}>
@@ -399,6 +407,18 @@ const App: React.FC = () => {
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
+                    {userProfile && (
+                        <button 
+                            onClick={() => setShowOnboarding(true)}
+                            className="secondary rounded-full"
+                            title="Update profile and preferences"
+                        >
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                            </svg>
+                            Profile
+                        </button>
+                    )}
                     <SignedOut>
                         <SignInButton mode="modal">
                             <button className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-medium py-2 px-4 rounded-full transition-all duration-300 shadow-lg transform hover:scale-105">
@@ -500,6 +520,14 @@ const App: React.FC = () => {
                 </form>
             </footer>
             </div>
+        </AppShell>
+        );
+    }
+
+    // Default fallback - show entry points
+    return (
+        <AppShell>
+            <EntryPoints onSelectMode={handleSelectMode} />
         </AppShell>
     );
 };
