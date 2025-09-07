@@ -172,7 +172,7 @@ function renderStepContent(stepData: any, technique: any, countdown: number) {
   if (!stepData) return null;
 
   // Handle different technique types
-  if ('sense' in stepData) {
+  if (typeof stepData === 'object' && stepData !== null && 'sense' in stepData) {
     // Grounding technique
     return (
       <div className="text-center">
@@ -199,7 +199,7 @@ function renderStepContent(stepData: any, technique: any, countdown: number) {
     );
   }
 
-  if ('letter' in stepData) {
+  if (typeof stepData === 'object' && stepData !== null && 'letter' in stepData) {
     // RAIN method
     return (
       <div className="text-center">
@@ -224,7 +224,7 @@ function renderStepContent(stepData: any, technique: any, countdown: number) {
     );
   }
 
-  if ('phase' in stepData) {
+  if (typeof stepData === 'object' && stepData !== null && 'phase' in stepData) {
     // ACT technique
     return (
       <div className="text-center">

@@ -13,7 +13,8 @@ import EntryPoints from './components/EntryPoints';
 import QuickBreathing from './components/QuickBreathing';
 import QuickGrounding from './components/QuickGrounding';
 import AppShell from './components/AppShell';
-import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react';
+// Clerk imports commented out until configured
+// import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react';
 import { UserOnboarding } from './src/components/UserOnboarding';
 import { MemoryCreation } from './src/components/MemoryCreation';
 import { MemoryService } from './src/services/memoryService';
@@ -462,7 +463,7 @@ const App: React.FC = () => {
                 </div>
             </header>
 
-            <main className="flex-1 overflow-y-auto p-4 space-y-4">
+            <main className="flex-1 overflow-y-auto p-4 space-y-2">
                 {messages.map(renderMessage)}
                 {isLoading && (
                     <div className="flex items-end gap-2 justify-start">

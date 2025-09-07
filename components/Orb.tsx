@@ -179,12 +179,18 @@ export default function Orb({
     const container = ctnDom.current;
     if (!container) return;
 
-    const renderer = new Renderer({ alpha: true, premultipliedAlpha: false });
-    const gl = renderer.gl;
-    gl.clearColor(0, 0, 0, 0);
-    container.appendChild(gl.canvas);
+    let renderer: Renderer | null = null;
+    try {
+      renderer = new Renderer({ alpha: true, premultipliedAlpha: false });
+      const gl = renderer.gl;
+      if (!gl) {
+        console.warn('WebGL context could not be created');
+        return;
+      }
+      gl.clearColor(0, 0, 0, 0);
+      container.appendChild(gl.canvas);
 
-    const geometry = new Triangle(gl);
+      const geometry = new Triangle(gl);
     const program = new Program(gl, {
       vertex: vert,
       fragment: frag,
@@ -280,9 +286,16 @@ export default function Orb({
       window.removeEventListener("resize", resize);
       container.removeEventListener("mousemove", handleMouseMove);
       container.removeEventListener("mouseleave", handleMouseLeave);
-      container.removeChild(gl.canvas);
+      if (container.contains(gl.canvas)) {
+        container.removeChild(gl.canvas);
+      }
       gl.getExtension("WEBGL_lose_context")?.loseContext();
     };
+    } catch (error) {
+      console.warn('Failed to initialize WebGL orb:', error);
+      // Fallback: render nothing or a static gradient
+      return () => {};
+    }
   }, [hue, hoverIntensity, rotateOnHover, forceHoverState]);
 
   return <div ref={ctnDom} className="w-full h-full" />;

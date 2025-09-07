@@ -139,8 +139,7 @@ const AppShell: React.FC<AppShellProps> = ({
 
       {/* Global styles for the shell */}
       <style jsx global>{`
-        /* Import global styles */
-        @import url('/styles/globals.css');
+        /* Global styles are imported via index.tsx */
         
         /* Helen app specific overrides */
         .helen-app-shell {

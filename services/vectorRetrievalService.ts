@@ -60,7 +60,9 @@ export class VectorRetrievalService {
 
   constructor(baseUrl: string = 'http://localhost:8000') {
     this.baseUrl = baseUrl;
-    this.checkHealth();
+    // Disable vector service until backend is deployed
+    this.isServiceHealthy = false;
+    // this.checkHealth();
   }
 
   /**
@@ -491,6 +493,20 @@ Always respond with structured JSON matching the required schema.`;
   }
 }
 
-// Export singleton instance
-export const vectorRetrievalService = new VectorRetrievalService();
-export const enhancedContextualManager = new EnhancedContextualManager();
+// Export singleton instance with lazy initialization
+let _vectorRetrievalService: VectorRetrievalService | null = null;
+let _enhancedContextualManager: EnhancedContextualManager | null = null;
+
+export const vectorRetrievalService = (() => {
+  if (!_vectorRetrievalService) {
+    _vectorRetrievalService = new VectorRetrievalService();
+  }
+  return _vectorRetrievalService;
+})();
+
+export const enhancedContextualManager = (() => {
+  if (!_enhancedContextualManager) {
+    _enhancedContextualManager = new EnhancedContextualManager();
+  }
+  return _enhancedContextualManager;
+})();

@@ -163,12 +163,18 @@ export const getContextualAIResponse = async (
   // Process RSD awareness
   const { rsdAnalysis, enhancedPrompt, shouldPrioritizeRSD } = processRSDAwareMessage(history, previousActivity);
   
-  // Get vector-enhanced system instruction
-  let enhancedSystemInstruction = await enhancedContextualManager.generateContextAwareInstruction(
-    history,
-    sessionId,
-    previousActivity
-  );
+  // Get vector-enhanced system instruction with fallback
+  let enhancedSystemInstruction = '';
+  try {
+    enhancedSystemInstruction = await enhancedContextualManager.generateContextAwareInstruction(
+      history,
+      sessionId,
+      previousActivity
+    );
+  } catch (error) {
+    console.warn('Vector service unavailable, using basic instruction');
+    enhancedSystemInstruction = await getSystemInstruction(history, sessionId, previousActivity);
+  }
   
   // Add RSD-specific prompt if needed
   if (enhancedPrompt && shouldPrioritizeRSD) {
