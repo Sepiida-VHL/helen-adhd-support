@@ -124,16 +124,42 @@ const MeditativeSpace: React.FC<MeditativeSpaceProps> = ({ isVisible, onClose })
         <div className="absolute top-1/2 left-1/2 w-48 h-48 bg-cyan-500/5 rounded-full blur-3xl animate-pulse" style={{animationDelay: '4s'}}></div>
       </div>
 
-      {/* Close button */}
-      <button
-        onClick={onClose}
-        className="absolute top-6 right-6 z-10 w-12 h-12 rounded-full bg-gray-800/80 backdrop-blur-sm border border-gray-600/50 flex items-center justify-center text-gray-300 hover:text-white hover:bg-gray-700/80 transition-all duration-300"
-        style={fadeStyles}
-      >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+      {/* Navigation buttons */}
+      <div className="absolute top-6 right-6 z-10 flex gap-3">
+        {/* Home button */}
+        <button
+          onClick={onClose}
+          className="w-12 h-12 rounded-full flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-lg"
+          style={{
+            ...fadeStyles,
+            background: 'radial-gradient(circle at center, #f472b6, #ec4899)',
+            boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.2), inset 0 -2px 4px rgba(0,0,0,0.2), 0 4px 8px rgba(236,72,153,0.4)',
+            border: '1px solid rgba(255,255,255,0.2)'
+          }}
+          title="Return to main menu"
+        >
+          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+          </svg>
+        </button>
+        
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="w-12 h-12 rounded-full flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-lg"
+          style={{
+            ...fadeStyles,
+            background: 'radial-gradient(circle at center, #f472b6, #ec4899)',
+            boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.2), inset 0 -2px 4px rgba(0,0,0,0.2), 0 4px 8px rgba(236,72,153,0.4)',
+            border: '1px solid rgba(255,255,255,0.2)'
+          }}
+          title="Close meditative space"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
 
       {/* Main content */}
       <div className="flex flex-col items-center justify-center min-h-screen p-8">

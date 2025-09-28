@@ -291,12 +291,28 @@
 }
 
 .btn-secondary {
-  background: var(--surface-light);
-  color: var(--text-primary);
+  background: radial-gradient(circle at 30% 30%, #ff8787, #ff6b6b, #e55353);
+  color: white;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.2), 0 8px 20px rgba(255,107,107,0.3);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-secondary::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: inherit;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3), transparent 70%);
+  pointer-events: none;
 }
 
 .btn-secondary:hover {
-  background: var(--surface-hover);
+  background: radial-gradient(circle at 30% 30%, #ff9999, #ff7979, #e66767);
+  box-shadow: inset 0 0 15px rgba(0,0,0,0.25), 0 12px 25px rgba(255,107,107,0.4);
+  transform: translateY(-3px) scale(1.02);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 /* Final Step Preview */

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Message, Sender, CrisisLevel, ConversationState, InterventionTechnique, GeminiResponse, ACTTechnique, GroundingTechnique, RAINMethod } from './types';
+import { Message, Sender, CrisisLevel, ConversationState, InterventionTechniqueDetails, GeminiResponse, ACTTechnique, GroundingTechnique, RAINMethod } from './types';
 import { getEnhancedAIResponse, getContextualAIResponse } from './services/geminiService';
 import { ACTInterventions, AdvancedCrisisInterventions, BreathingInterventions, GroundingTechniques } from './services/interventionService';
+import { StructuredRSDChat, RSDConversationState } from './services/structuredRSDService';
 import { SendIcon, SparklesIcon, UserIcon, ShieldExclamationIcon } from './components/Icons';
 import InterventionCard from './components/InterventionCard';
 import BreathingAnimator from './components/BreathingAnimator';
@@ -13,6 +14,9 @@ import EntryPoints from './components/EntryPoints';
 import QuickBreathing from './components/QuickBreathing';
 import QuickGrounding from './components/QuickGrounding';
 import AppShell from './components/AppShell';
+import HelpMenu from './components/HelpMenu';
+import StressBall from './components/StressBall';
+import BubbleWrap from './components/BubbleWrap';
 // Clerk imports commented out until configured
 // import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react';
 import { UserOnboarding } from './src/components/UserOnboarding';
@@ -45,13 +49,13 @@ const App: React.FC = () => {
         detectedInsights?: string[];
         rsdStage?: string;
     }>({});
-    const [appMode, setAppMode] = useState<'chat' | 'breathing' | 'grounding' | 'crisis' | 'meditate' | null>(null);
+    const [appMode, setAppMode] = useState<'chat' | 'breathing' | 'grounding' | 'crisis' | 'meditate' | 'stressball' | 'bubblewrap' | null>(null);
     const [messages, setMessages] = useState<Message[]>([initialMessage]);
     const [userInput, setUserInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [crisisLevel, setCrisisLevel] = useState<CrisisLevel>(CrisisLevel.NONE);
     const [conversationState, setConversationState] = useState<ConversationState>(ConversationState.GREETING);
-    const [availableInterventions, setAvailableInterventions] = useState<InterventionTechnique[]>([]);
+    const [availableInterventions, setAvailableInterventions] = useState<InterventionTechniqueDetails[]>([]);
     const [activeIntervention, setActiveIntervention] = useState<BreathingPattern | null>(null);
     const [activeAdvancedIntervention, setActiveAdvancedIntervention] = useState<ACTTechnique | GroundingTechnique | RAINMethod | null>(null);
     const [showCrisisResources, setShowCrisisResources] = useState(false);
@@ -59,6 +63,13 @@ const App: React.FC = () => {
     const [sessionId] = useState(() => crypto.randomUUID());
     const [attentionFadeDetected, setAttentionFadeDetected] = useState(false);
     const [previousActivity, setPreviousActivity] = useState<'breathing' | 'grounding' | 'chat' | null>(null);
+    
+    // New states for enhanced features
+    const [showHelpMenu, setShowHelpMenu] = useState(false);
+    const [showStressBall, setShowStressBall] = useState(false);
+    const [showBubbleWrap, setShowBubbleWrap] = useState(false);
+    const [isRSDMode, setIsRSDMode] = useState(false);
+    const [rsdConversationState, setRsdConversationState] = useState<RSDConversationState | null>(null);
 
     const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -84,6 +95,37 @@ const App: React.FC = () => {
     const handleSendMessage = useCallback(async (text: string) => {
         if (!text.trim() || isLoading) return;
 
+        // Handle help requests
+        if (text.toLowerCase().includes('help') || text.toLowerCase().includes('menu') || text.trim() === '?' || text.toLowerCase().includes('options')) {
+            setShowHelpMenu(true);
+            return;
+        }
+
+        // Handle RSD detection
+        const rsdKeywords = ['rejected', 'rejection', 'criticized', 'abandoned', 'ignored', 'dismissed', 'worthless', 'failure'];
+        const isRSDTrigger = rsdKeywords.some(keyword => text.toLowerCase().includes(keyword));
+        
+        if (isRSDTrigger && !isRSDMode) {
+            // Switch to structured RSD mode
+            setIsRSDMode(true);
+            const rsdState = StructuredRSDChat.initializeRSDConversation();
+            setRsdConversationState(rsdState);
+            
+            const rsdPrompt = StructuredRSDChat.getStagePrompt(rsdState);
+            setMessages(prev => [...prev, {
+                id: crypto.randomUUID(),
+                sender: Sender.User,
+                text,
+                timestamp: new Date().toISOString(),
+            }, {
+                id: crypto.randomUUID(),
+                sender: Sender.System,
+                text: "I'm detecting this might be an RSD (Rejection Sensitive Dysphoria) moment. Let's work through this together with a gentle, structured approach.",
+                timestamp: new Date().toISOString(),
+            }, rsdPrompt]);
+            return;
+        }
+
         const userMessage: Message = {
             id: crypto.randomUUID(),
             sender: Sender.User,
@@ -96,6 +138,38 @@ const App: React.FC = () => {
         setUserInput('');
         setIsLoading(true);
         setAvailableInterventions([]);
+
+        if (isRSDMode && rsdConversationState) {
+            // Handle structured RSD conversation
+            const { updatedState, aiResponse, needsLLMSummary } = StructuredRSDChat.processUserResponse(text, rsdConversationState);
+            setRsdConversationState(updatedState);
+            
+            setMessages(prev => [...prev, aiResponse]);
+            
+            if (needsLLMSummary) {
+                // Generate LLM summary and exit RSD mode
+                const summary = await StructuredRSDChat.generateSummary(updatedState);
+                setMessages(prev => [...prev, summary, {
+                    id: crypto.randomUUID(),
+                    sender: Sender.System,
+                    text: "✨ RSD conversation complete. Returning to normal chat mode.",
+                    timestamp: new Date().toISOString(),
+                }]);
+                setIsRSDMode(false);
+                setRsdConversationState(null);
+            } else {
+                // Continue with next RSD prompt
+                const nextPrompt = StructuredRSDChat.getNextPrompt(updatedState);
+                if (nextPrompt) {
+                    setTimeout(() => {
+                        setMessages(prev => [...prev, nextPrompt]);
+                    }, 1000);
+                }
+            }
+            
+            setIsLoading(false);
+            return;
+        }
 
         // Use enhanced contextual AI response that includes full layered context system
         const aiResponse: GeminiResponse = await getContextualAIResponse(newMessages, sessionId, previousActivity);
@@ -128,13 +202,13 @@ const App: React.FC = () => {
             setAvailableInterventions(aiResponse.suggestedInterventions);
         }
 
-    }, [isLoading, messages]);
+    }, [isLoading, messages, isRSDMode, rsdConversationState, sessionId, previousActivity]);
     
     const handleCrisisButton = () => {
         handleSendMessage("I'm in crisis and need help now.");
     };
 
-    const handleInterventionSelect = (intervention: InterventionTechnique) => {
+    const handleInterventionSelect = (intervention: InterventionTechniqueDetails) => {
         setAvailableInterventions([]);
         if (intervention.name === 'Box Breathing') {
             setActiveIntervention({
@@ -188,7 +262,15 @@ const App: React.FC = () => {
 
         return (
             <div key={msg.id} className={`flex items-end gap-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
-                {!isUser && <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg"><SparklesIcon /></div>}
+                {!isUser && (
+                    <button 
+                        onClick={() => setShowHelpMenu(true)}
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-purple-400 to-pink-400 shadow-lg hover:scale-110 transition-transform duration-200"
+                        title="Help me be calm"
+                    >
+                        <span className="text-white font-bold text-lg">H</span>
+                    </button>
+                )}
                 <div
                     className={`max-w-md rounded-2xl px-4 py-3 shadow-lg backdrop-blur-sm ${
                         isUser ? 'bg-gradient-to-r from-pink-500 to-pink-600 text-white rounded-br-none' : 'bg-gray-800/80 text-gray-200 rounded-bl-none border border-gray-700/50'
@@ -215,7 +297,7 @@ const App: React.FC = () => {
         }
     };
 
-    const handleSelectMode = (mode: 'chat' | 'breathing' | 'grounding' | 'crisis' | 'meditate') => {
+    const handleSelectMode = (mode: 'chat' | 'breathing' | 'grounding' | 'crisis' | 'meditate' | 'stressball' | 'bubblewrap' | 'rsd') => {
         setShowEntryPoints(false);
         setAppMode(mode);
         
@@ -223,9 +305,56 @@ const App: React.FC = () => {
             setShowCrisisResources(true);
         } else if (mode === 'meditate') {
             setShowMeditativeSpace(true);
+        } else if (mode === 'stressball') {
+            setShowStressBall(true);
+        } else if (mode === 'bubblewrap') {
+            setShowBubbleWrap(true);
+        } else if (mode === 'rsd') {
+            // Activate RSD mode and start structured conversation
+            setIsRSDMode(true);
+            setAppMode('chat');
+            const rsdState = StructuredRSDChat.initializeRSDConversation();
+            setRsdConversationState(rsdState);
+            
+            const rsdPrompt = StructuredRSDChat.getStagePrompt(rsdState);
+            setMessages(prev => [...prev, {
+                id: crypto.randomUUID(),
+                sender: Sender.System,
+                text: "Starting RSD Support Chat - a gentle, structured approach to help you work through rejection sensitivity moments.",
+                timestamp: new Date().toISOString(),
+            }, rsdPrompt]);
         } else if (mode === 'chat') {
             // If starting chat, we'll use the previous activity info later
             // The geminiService will detect any completed activities and skip to Phase 2
+        }
+    };
+
+    // New handler for help menu activities
+    const handleHelpMenuActivity = (activity: 'breathing' | 'grounding' | 'meditate' | 'stressball' | 'bubblewrap' | 'rsd') => {
+        if (activity === 'breathing') {
+            setAppMode('breathing');
+        } else if (activity === 'grounding') {
+            setAppMode('grounding');
+        } else if (activity === 'meditate') {
+            setShowMeditativeSpace(true);
+        } else if (activity === 'stressball') {
+            setShowStressBall(true);
+        } else if (activity === 'bubblewrap') {
+            setShowBubbleWrap(true);
+        } else if (activity === 'rsd') {
+            // Activate RSD mode and start structured conversation
+            setIsRSDMode(true);
+            setAppMode('chat');
+            const rsdState = StructuredRSDChat.initializeRSDConversation();
+            setRsdConversationState(rsdState);
+            
+            const rsdPrompt = StructuredRSDChat.getStagePrompt(rsdState);
+            setMessages(prev => [...prev, {
+                id: crypto.randomUUID(),
+                sender: Sender.System,
+                text: "Starting RSD Support Chat - a gentle, structured approach to help you work through rejection sensitivity moments.",
+                timestamp: new Date().toISOString(),
+            }, rsdPrompt]);
         }
     };
 
@@ -257,6 +386,8 @@ const App: React.FC = () => {
         setShowEntryPoints(true);
         setShowMeditativeSpace(false);
         setShowCrisisResources(false);
+        setShowStressBall(false);
+        setShowBubbleWrap(false);
     };
 
     const handleProfileComplete = (profile: UserProfile) => {
@@ -286,6 +417,22 @@ const App: React.FC = () => {
             };
             setMessages(prev => [...prev, successMessage]);
         }
+    };
+
+    // Handler for completing fun activities
+    const handleFunActivityComplete = (activityType: 'stressball' | 'bubblewrap') => {
+        setShowStressBall(false);
+        setShowBubbleWrap(false);
+        setAppMode('chat');
+        
+        // Return to chat with completion message
+        const completionMessage: Message = {
+            id: crypto.randomUUID(),
+            sender: Sender.System,
+            text: `${activityType === 'stressball' ? 'Stress ball' : 'Bubble wrap'} activity complete! That was fun! How are you feeling?`,
+            timestamp: new Date().toISOString(),
+        };
+        setMessages(prev => [...prev, completionMessage]);
     };
 
     // Show landing page first
@@ -356,10 +503,58 @@ const App: React.FC = () => {
         );
     }
 
+    // Show stress ball activity
+    if (showStressBall) {
+        return (
+            <AppShell orbConfig={{ hue: 25, hoverIntensity: 0.2, opacity: 0.2 }}>
+                <StressBall 
+                    isVisible={showStressBall}
+                    onClose={() => {
+                        setShowStressBall(false);
+                        handleBackToEntryPoints();
+                    }}
+                />
+            </AppShell>
+        );
+    }
+
+    // Show bubble wrap activity
+    if (showBubbleWrap) {
+        return (
+            <AppShell orbConfig={{ hue: 320, hoverIntensity: 0.2, opacity: 0.2 }}>
+                <BubbleWrap 
+                    isVisible={showBubbleWrap}
+                    onClose={() => {
+                        setShowBubbleWrap(false);
+                        handleBackToEntryPoints();
+                    }}
+                />
+            </AppShell>
+        );
+    }
+
     // Show chat interface
     if (appMode === 'chat') {
         return (
         <AppShell>
+            {/* Help Menu Modal */}
+            <HelpMenu 
+                isVisible={showHelpMenu} 
+                onClose={() => setShowHelpMenu(false)}
+                onSelectActivity={handleHelpMenuActivity}
+            />
+            
+            {/* Fun Activity Modals */}
+            <StressBall 
+                isVisible={showStressBall}
+                onClose={() => handleFunActivityComplete('stressball')}
+            />
+            
+            <BubbleWrap 
+                isVisible={showBubbleWrap}
+                onClose={() => handleFunActivityComplete('bubblewrap')}
+            />
+
             {showMemoryCreation && userProfile && (
                 <div className="modal-overlay" onClick={() => setShowMemoryCreation(false)}>
                     <div className="modal-content" onClick={e => e.stopPropagation()}>
@@ -401,13 +596,26 @@ const App: React.FC = () => {
                         <span className="text-white font-bold text-lg">H</span>
                     </div>
                     <div>
-                        <h1 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center gap-2">
-                            <SparklesIcon className="text-purple-400"/> Helen
+                        <h1 className="text-xl font-bold text-white flex items-center gap-2">
+                            Helen
+                            {isRSDMode && <span className="text-xs bg-red-500/20 text-red-300 px-2 py-1 rounded-full">RSD Mode</span>}
                         </h1>
                         <p className="text-xs text-gray-400">by SepiidAI</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
+                    {/* Help Menu Button */}
+                    <button 
+                        onClick={() => setShowHelpMenu(true)}
+                        className="secondary rounded-full"
+                        title="Show support activities menu"
+                    >
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
+                        </svg>
+                        Help
+                    </button>
+
                     {userProfile && (
                         <button 
                             onClick={() => setShowOnboarding(true)}
@@ -420,21 +628,7 @@ const App: React.FC = () => {
                             Profile
                         </button>
                     )}
-                    {/* Clerk auth temporarily disabled
-                    <SignedOut>
-                        <SignInButton mode="modal">
-                            <button className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-medium py-2 px-4 rounded-full transition-all duration-300 shadow-lg transform hover:scale-105">
-                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M10 17l5-5-5-5v10z"/>
-                                </svg>
-                                Sign in
-                            </button>
-                        </SignInButton>
-                    </SignedOut>
-                    <SignedIn>
-                        <UserButton afterSignOutUrl="/"/>
-                    </SignedIn>
-                    */}
+                    
                     <button 
                         onClick={() => setShowMeditativeSpace(true)}
                         className="secondary rounded-full"
@@ -469,7 +663,13 @@ const App: React.FC = () => {
                 {messages.map(renderMessage)}
                 {isLoading && (
                     <div className="flex items-end gap-2 justify-start">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg"><SparklesIcon /></div>
+                        <button 
+                            onClick={() => setShowHelpMenu(true)}
+                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-purple-400 to-pink-400 shadow-lg hover:scale-110 transition-transform duration-200"
+                            title="Help me be calm"
+                        >
+                            <span className="text-white font-bold text-lg">H</span>
+                        </button>
                         <div className="max-w-md rounded-2xl px-4 py-3 shadow-lg bg-gray-800/80 backdrop-blur-sm text-gray-200 rounded-bl-none border border-gray-700/50">
                             <div className="flex items-center justify-center space-x-1">
                                 <div className="h-2 w-2 animate-bounce rounded-full bg-purple-400 [animation-delay:-0.3s]"></div>
@@ -482,7 +682,18 @@ const App: React.FC = () => {
                 <div ref={chatEndRef} />
             </main>
 
-            {availableInterventions.length > 0 && !isHandoff && (
+            {/* Show help hint for new users */}
+            {messages.length <= 2 && !isRSDMode && (
+                <div className="px-4 pb-2">
+                    <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl px-4 py-2 text-center">
+                        <p className="text-purple-300 text-sm">
+                            💡 Type "help" or "?" anytime to see all available support activities
+                        </p>
+                    </div>
+                </div>
+            )}
+
+            {availableInterventions.length > 0 && !isHandoff && !isRSDMode && (
                 <div className="p-4 border-t border-gray-700/30 glass">
                     <p className="text-center text-sm text-gray-300 mb-3 text-enter">Here are a few options that might help. What feels most doable?</p>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -505,7 +716,13 @@ const App: React.FC = () => {
                         type="text"
                         value={userInput}
                         onChange={(e) => setUserInput(e.target.value)}
-                        placeholder={isHandoff ? "Please contact emergency services." : "How are you feeling right now?"}
+                        placeholder={
+                            isHandoff 
+                                ? "Please contact emergency services."
+                                : isRSDMode 
+                                    ? "Take your time to respond..."
+                                    : "How are you feeling right now?"
+                        }
                         className="flex-1"
                         disabled={isLoading || isHandoff}
                     />

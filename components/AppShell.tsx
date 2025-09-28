@@ -58,7 +58,7 @@ const AppShell: React.FC<AppShellProps> = ({
     setIsTransitioning(true);
     setTimeout(() => {
       setIsTransitioning(false);
-    }, theme.animation.duration.base);
+    }, parseInt(theme.animation.duration.base));
   };
 
   // Observe content changes for smooth transitions
@@ -176,8 +176,8 @@ const AppShell: React.FC<AppShellProps> = ({
           animation-delay: 100ms;
         }
 
-        /* Squidgy button styles */
-        .helen-app-shell button {
+        /* General button styles - lower specificity */
+        .helen-app-shell button:not([class*="bg-"]) {
           background: ${theme.colors.background.soft};
           color: ${theme.colors.gray[900]};
           border-radius: ${theme.borderRadius.xl};
@@ -190,12 +190,12 @@ const AppShell: React.FC<AppShellProps> = ({
           overflow: hidden;
         }
 
-        .helen-app-shell button:hover {
+        .helen-app-shell button:not([class*="bg-"]):hover {
           transform: translateY(-2px) scale(1.02);
           box-shadow: ${theme.shadows.lg}, ${theme.shadows.glow.purple};
         }
 
-        .helen-app-shell button:active {
+        .helen-app-shell button:not([class*="bg-"]):active {
           transform: translateY(0) scale(0.98);
         }
 
@@ -209,10 +209,75 @@ const AppShell: React.FC<AppShellProps> = ({
           background: linear-gradient(135deg, ${theme.colors.primary[600]}, ${theme.colors.primary[700]});
         }
 
-        /* Secondary buttons */
+        /* Pink buttons - high specificity to override */
+        .helen-app-shell button.bg-pink-600,
+        .helen-app-shell .bg-pink-600 {
+          background: #db2777 !important;
+          background-color: #db2777 !important;
+          background-image: none !important;
+          color: white !important;
+          border: none !important;
+          padding: 0.75rem 1.5rem !important;
+          border-radius: 9999px !important;
+          font-weight: 700 !important;
+          transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+
+        .helen-app-shell button.bg-pink-600:hover,
+        .helen-app-shell .bg-pink-600:hover {
+          background: #be185d !important;
+          background-color: #be185d !important;
+          background-image: none !important;
+          transform: translateY(-2px) scale(1.02) !important;
+        }
+
+        .helen-app-shell button.bg-pink-600:disabled,
+        .helen-app-shell .bg-pink-600:disabled {
+          background: #374151 !important;
+          background-color: #374151 !important;
+          background-image: none !important;
+          opacity: 0.5 !important;
+          transform: none !important;
+        }
+
+        .helen-app-shell button.bg-pink-600:active,
+        .helen-app-shell .bg-pink-600:active {
+          background: #9d174d !important;
+          background-color: #9d174d !important;
+          background-image: none !important;
+          transform: translateY(0) scale(0.98) !important;
+        }
+
+        /* Secondary buttons - stress ball style */
         .helen-app-shell button.secondary {
-          background: linear-gradient(135deg, ${theme.colors.secondary[500]}, ${theme.colors.secondary[600]});
+          background: radial-gradient(circle at 30% 30%, #ff8787, #ff6b6b, #e55353);
           color: white;
+          box-shadow: inset 0 0 10px rgba(0,0,0,0.2), 0 10px 25px rgba(255,107,107,0.3);
+          border: 2px solid rgba(255, 255, 255, 0.2);
+          position: relative;
+          overflow: hidden;
+        }
+        
+        .helen-app-shell button.secondary::before {
+          content: '';
+          position: absolute;
+          inset: 2px;
+          border-radius: inherit;
+          background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3), transparent 70%);
+          pointer-events: none;
+        }
+        
+        .helen-app-shell button.secondary:hover {
+          background: radial-gradient(circle at 30% 30%, #ff9999, #ff7979, #e66767);
+          box-shadow: inset 0 0 15px rgba(0,0,0,0.25), 0 15px 30px rgba(255,107,107,0.4);
+          transform: translateY(-3px) scale(1.05);
+          border-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .helen-app-shell button.secondary:active {
+          background: radial-gradient(circle at 30% 30%, #ff5757, #ff4444, #d63333);
+          box-shadow: inset 0 0 20px rgba(0,0,0,0.3), 0 5px 15px rgba(255,107,107,0.5);
+          transform: translateY(-1px) scale(0.97);
         }
 
         /* Glass card styles */

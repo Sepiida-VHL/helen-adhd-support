@@ -75,11 +75,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
         {/* Header */}
         <div className="text-center mb-16 max-w-2xl">
           <div className="flex items-center justify-center gap-3 mb-6">
-            <SparklesIcon className="w-8 h-8 text-purple-400" />
-            <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
+            <h1 className="text-4xl md:text-6xl font-bold text-white">
               Helen
             </h1>
-            <SparklesIcon className="w-8 h-8 text-purple-400" />
           </div>
           
           <div className="text-center mb-4">

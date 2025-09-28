@@ -46,10 +46,10 @@ const SquidgyButton: React.FC<SquidgyButtonProps> = ({
       glowColor: theme.shadows.glow.purple
     },
     secondary: {
-      background: `linear-gradient(135deg, ${theme.colors.secondary[500]}, ${theme.colors.secondary[600]})`,
-      hoverBackground: `linear-gradient(135deg, ${theme.colors.secondary[600]}, ${theme.colors.secondary[700]})`,
+      background: 'radial-gradient(circle at 30% 30%, #ff8787, #ff6b6b, #e55353)',
+      hoverBackground: 'radial-gradient(circle at 30% 30%, #ff9999, #ff7979, #e66767)',
       color: 'white',
-      glowColor: theme.shadows.glow.cyan
+      glowColor: '0 0 20px rgba(255, 107, 107, 0.4)'
     },
     danger: {
       background: `linear-gradient(135deg, ${theme.colors.error}, #dc2626)`,

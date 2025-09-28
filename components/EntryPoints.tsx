@@ -2,7 +2,7 @@ import React from 'react';
 import { SparklesIcon, ShieldExclamationIcon } from './Icons';
 
 interface EntryPointsProps {
-    onSelectMode: (mode: 'chat' | 'breathing' | 'grounding' | 'crisis' | 'meditate') => void;
+    onSelectMode: (mode: 'chat' | 'breathing' | 'grounding' | 'crisis' | 'meditate' | 'stressball' | 'bubblewrap' | 'rsd') => void;
 }
 
 const EntryPoints: React.FC<EntryPointsProps> = ({ onSelectMode }) => {
@@ -26,7 +26,7 @@ const EntryPoints: React.FC<EntryPointsProps> = ({ onSelectMode }) => {
             description: 'Guided breathing patterns to calm your nervous system',
             icon: (
                 <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2zm0-3H6V9h12v2z"/>
                 </svg>
             ),
             gradient: 'from-cyan-500 to-cyan-600',
@@ -60,6 +60,45 @@ const EntryPoints: React.FC<EntryPointsProps> = ({ onSelectMode }) => {
             shadowColor: 'rgba(99, 102, 241, 0.3)'
         },
         {
+            id: 'rsd',
+            title: 'RSD Support Chat',
+            description: 'Structured conversation for rejection sensitivity moments',
+            icon: (
+                <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-6 9h-2.5l-2-2h-2l2.5 2.5L8 13.5h2l2-2H14V9z"/>
+                </svg>
+            ),
+            gradient: 'from-red-400 to-red-500',
+            hoverGradient: 'hover:from-red-500 hover:to-red-600',
+            shadowColor: 'rgba(248, 113, 113, 0.3)'
+        },
+        {
+            id: 'stressball',
+            title: 'Interactive Stress Ball',
+            description: 'Squeeze and throw a virtual stress ball around',
+            icon: (
+                <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+                </svg>
+            ),
+            gradient: 'from-orange-500 to-orange-600',
+            hoverGradient: 'hover:from-orange-600 hover:to-orange-700',
+            shadowColor: 'rgba(249, 115, 22, 0.3)'
+        },
+        {
+            id: 'bubblewrap',
+            title: 'Bubble Wrap Popping',
+            description: 'Pop virtual bubble wrap for satisfying stress relief',
+            icon: (
+                <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM9 18H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm2-4H5V6h14v8z"/>
+                </svg>
+            ),
+            gradient: 'from-pink-500 to-pink-600',
+            hoverGradient: 'hover:from-pink-600 hover:to-pink-700',
+            shadowColor: 'rgba(236, 72, 153, 0.3)'
+        },
+        {
             id: 'crisis',
             title: 'Crisis Support',
             description: 'Immediate help and emergency resources',
@@ -87,8 +126,8 @@ const EntryPoints: React.FC<EntryPointsProps> = ({ onSelectMode }) => {
                             <span className="text-white font-bold text-2xl">H</span>
                         </div>
                     </div>
-                    <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center justify-center gap-3 mb-2">
-                        <SparklesIcon className="text-purple-400"/> Helen
+                    <h1 className="text-4xl font-bold text-white flex items-center justify-center gap-3 mb-2">
+                        Helen
                     </h1>
                     <p className="text-gray-400 mb-2">by SepiidAI</p>
                     <p className="text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed">
@@ -97,7 +136,7 @@ const EntryPoints: React.FC<EntryPointsProps> = ({ onSelectMode }) => {
                 </div>
 
                 {/* Entry Points Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {entryPoints.map((point) => (
                         <button
                             key={point.id}
