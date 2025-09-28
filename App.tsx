@@ -600,7 +600,7 @@ const App: React.FC = () => {
                             Helen
                             {isRSDMode && <span className="text-xs bg-red-500/20 text-red-300 px-2 py-1 rounded-full">RSD Mode</span>}
                         </h1>
-                        <p className="text-xs text-gray-400">by SepiidAI</p>
+                        <p className="text-xs text-gray-400">by Sepiida-VHL</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
