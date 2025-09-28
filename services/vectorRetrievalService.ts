@@ -1,8 +1,9 @@
 /**
  * Vector Retrieval Service
- * TypeScript client for interfacing with ChromaDB retrieval service
+ * TypeScript client for interfacing with Supabase pgvector
  */
 
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Message, ConversationContext, CrisisLevel, AttentionStatus } from '../types';
 
 export interface VectorQuery {
@@ -55,81 +56,107 @@ export interface ADHDContextRetrieval {
 }
 
 export class VectorRetrievalService {
-  private baseUrl: string;
+  private supabase: SupabaseClient | null = null;
   private isServiceHealthy: boolean = false;
 
-  constructor(baseUrl: string = 'http://localhost:8000') {
-    this.baseUrl = baseUrl;
-    // Disable vector service until backend is deployed
-    this.isServiceHealthy = false;
-    // this.checkHealth();
+  constructor() {
+    this.initializeSupabase();
+  }
+
+  private initializeSupabase() {
+    const supabaseUrl = (import.meta as any).env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = (import.meta as any).env.VITE_SUPABASE_ANON_KEY;
+    
+    if (supabaseUrl && supabaseAnonKey) {
+      this.supabase = createClient(supabaseUrl, supabaseAnonKey);
+      this.isServiceHealthy = true;
+    } else {
+      console.warn('Supabase credentials not found. Vector search will be disabled.');
+      this.isServiceHealthy = false;
+    }
   }
 
   /**
    * Check if the retrieval service is healthy
    */
   async checkHealth(): Promise<boolean> {
+    if (!this.supabase) {
+      return false;
+    }
+    
     try {
-      const response = await fetch(`${this.baseUrl}/health`);
-      this.isServiceHealthy = response.ok;
+      // Simple health check by querying supabase
+      const { error } = await this.supabase.from('conversations').select('count').limit(1);
+      this.isServiceHealthy = !error;
       return this.isServiceHealthy;
     } catch (error) {
-      console.warn('Vector retrieval service not available:', error);
+      console.warn('Supabase vector service not available:', error);
       this.isServiceHealthy = false;
       return false;
     }
   }
 
   /**
-   * Retrieve semantically similar contexts
+   * Retrieve semantically similar contexts using Supabase pgvector
    */
   async retrieveContext(query: VectorQuery): Promise<RetrievalResult | null> {
-    if (!this.isServiceHealthy) {
-      console.warn('Vector service unavailable, skipping retrieval');
+    if (!this.isServiceHealthy || !this.supabase) {
+      console.warn('Supabase vector service unavailable, skipping retrieval');
       return null;
     }
 
     try {
-      const response = await fetch(`${this.baseUrl}/retrieve`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(query),
+      // Use Supabase Edge Function for similarity search
+      const { data, error } = await this.supabase.functions.invoke('vector-search', {
+        body: {
+          query_text: query.query_text,
+          collection_name: query.collection_name || 'conversations',
+          match_count: query.n_results || 5,
+          filters: query.filters
+        }
       });
 
-      if (!response.ok) {
-        throw new Error(`Retrieval failed: ${response.statusText}`);
+      if (error) {
+        throw error;
       }
 
-      return await response.json();
+      // Transform response to match expected format
+      return {
+        documents: data?.documents || [],
+        ids: data?.ids || [],
+        distances: data?.distances || [],
+        metadatas: data?.metadatas || [],
+        query_context: data?.query_context || {}
+      };
     } catch (error) {
-      console.error('Context retrieval error:', error);
+      console.error('Supabase vector retrieval error:', error);
       return null;
     }
   }
 
   /**
-   * Add new context to the vector store
+   * Add new context to the vector store using Supabase
    */
   async addContext(document: VectorDocument): Promise<boolean> {
-    if (!this.isServiceHealthy) {
-      console.warn('Vector service unavailable, skipping storage');
+    if (!this.isServiceHealthy || !this.supabase) {
+      console.warn('Supabase vector service unavailable, skipping storage');
       return false;
     }
 
     try {
-      const response = await fetch(`${this.baseUrl}/add_context`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(document),
+      // Use Supabase Edge Function to add context with automatic embedding
+      const { error } = await this.supabase.functions.invoke('add-context', {
+        body: {
+          documents: document.documents,
+          metadatas: document.metadatas,
+          ids: document.ids,
+          collection_name: document.collection_name || 'therapeutic_knowledge'
+        }
       });
 
-      return response.ok;
+      return !error;
     } catch (error) {
-      console.error('Context storage error:', error);
+      console.error('Supabase context storage error:', error);
       return false;
     }
   }
@@ -138,78 +165,94 @@ export class VectorRetrievalService {
    * Store a conversation turn for future retrieval
    */
   async storeConversation(context: ConversationStorage): Promise<boolean> {
-    if (!this.isServiceHealthy) {
+    if (!this.isServiceHealthy || !this.supabase) {
       return false;
     }
 
     try {
-      const response = await fetch(`${this.baseUrl}/store_conversation`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(context),
-      });
+      const { error } = await this.supabase
+        .from('conversations')
+        .insert({
+          user_message: context.user_message,
+          ai_response: context.ai_response,
+          session_id: context.session_id,
+          previous_activity: context.previous_activity,
+          crisis_level: context.crisis_level,
+          attention_status: context.attention_status,
+          emotional_state: context.emotional_state,
+          created_at: context.timestamp || new Date().toISOString()
+        });
 
-      return response.ok;
+      return !error;
     } catch (error) {
-      console.error('Conversation storage error:', error);
+      console.error('Supabase conversation storage error:', error);
       return false;
     }
   }
 
   /**
-   * Specialized ADHD context retrieval
+   * Specialized ADHD context retrieval using Supabase
    */
   async retrieveADHDContext(
     queryText: string,
     userPatterns?: Record<string, any>,
     sessionContext?: Record<string, any>
   ): Promise<ADHDContextRetrieval | null> {
-    if (!this.isServiceHealthy) {
+    if (!this.isServiceHealthy || !this.supabase) {
       return null;
     }
 
     try {
-      const response = await fetch(`${this.baseUrl}/retrieve_adhd_context`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      // Use Supabase Edge Function for ADHD-specific context retrieval
+      const { data, error } = await this.supabase.functions.invoke('adhd-context-search', {
+        body: {
           query_text: queryText,
           user_patterns: userPatterns,
-          session_context: sessionContext,
-        }),
+          session_context: sessionContext
+        }
       });
 
-      if (!response.ok) {
-        throw new Error(`ADHD context retrieval failed: ${response.statusText}`);
+      if (error) {
+        throw error;
       }
 
-      return await response.json();
+      return data as ADHDContextRetrieval;
     } catch (error) {
-      console.error('ADHD context retrieval error:', error);
+      console.error('Supabase ADHD context retrieval error:', error);
       return null;
     }
   }
 
   /**
-   * Get available collections and their stats
+   * Get available collections and their stats from Supabase
    */
   async getCollections(): Promise<any> {
-    if (!this.isServiceHealthy) {
+    if (!this.isServiceHealthy || !this.supabase) {
       return { collections: [] };
     }
 
     try {
-      const response = await fetch(`${this.baseUrl}/collections`);
-      if (!response.ok) {
-        throw new Error(`Collections fetch failed: ${response.statusText}`);
+      // Query the conversations table to get collection stats
+      const { data, error } = await this.supabase
+        .from('conversations')
+        .select('session_id, crisis_level, attention_status')
+        .limit(100);
+        
+      if (error) {
+        throw error;
       }
-      return await response.json();
+      
+      return {
+        collections: [
+          {
+            name: 'conversations',
+            count: data?.length || 0,
+            description: 'Stored therapeutic conversations'
+          }
+        ]
+      };
     } catch (error) {
-      console.error('Collections fetch error:', error);
+      console.error('Supabase collections fetch error:', error);
       return { collections: [] };
     }
   }
@@ -313,7 +356,7 @@ export class EnhancedContextualManager {
   }
 
   /**
-   * Get relevant intervention suggestions
+   * Get relevant intervention suggestions using Supabase
    */
   async getInterventionSuggestions(
     userMessage: string,
